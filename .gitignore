@@ -1,3 +1,0 @@
-flink-processor/target/flink-kafka2postgres-1.0-SNAPSHOT-jar-with-dependencies.jar
-flink-processor/target/*.jar
-*.jar

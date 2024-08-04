@@ -12,7 +12,7 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 public class WeatherDeserialization extends AbstractDeserializationSchema<Weather>{
     private static final long serialVersionUID=1;
     private transient ObjectMapper objectMapper;
-
+    //Here too
     // Initialization method for the schema. It is called before the actual working methods deserialize(byte[]) and thus suitable for one time setup work.
 
     @Override
