@@ -1,7 +1,11 @@
+
 import org.apache.flink.api.common.eventtime.WatermarkStrategy;
 import org.apache.flink.api.common.functions.AggregateFunction;
 import org.apache.flink.api.common.functions.MapFunction;
 import org.apache.flink.api.java.tuple.Tuple2;
+import org.apache.flink.connector.jdbc.JdbcConnectionOptions;
+import org.apache.flink.connector.jdbc.JdbcExecutionOptions;
+import org.apache.flink.connector.jdbc.JdbcSink;
 import org.apache.flink.connector.kafka.source.KafkaSource;
 import org.apache.flink.connector.kafka.source.enumerator.initializer.OffsetsInitializer;
 import org.apache.flink.streaming.api.datastream.DataStream;
@@ -47,7 +51,25 @@ public class Main{
         });
 
         System.out.println("Aggregation created");
-        
+        // cityAndValueStream.print();
+        cityAndValueStream.addSink(JdbcSink.sink("insert into weather (city,average_temp) values (?,?)",
+        (statement,event)->{
+            statement.setString(1, event.f0);
+            statement.setDouble(2, event.f1);
+        },
+        JdbcExecutionOptions.builder()
+        .withBatchSize(1000)
+        .withBatchIntervalMs(200)
+        .withMaxRetries(5)
+        .build(),
+        new JdbcConnectionOptions.JdbcConnectionOptionsBuilder()
+        .withUrl("jdbc:postgresql://docker.for.mac.host.internal:5438/postgres")
+        .withDriverName("org.postgresql.Driver")
+        .withUsername("postgres")
+        .withPassword("root")
+        .build()
+        ));
+        env.execute("kafka-flink-postgres");
     }
 
     public static class WeatherAggregator implements AggregateFunction<Weather, WeatherStatistics, Tuple2<WeatherStatistics,Double>>{
@@ -74,6 +96,7 @@ public class Main{
             statistics1.count += statistics2.count;
             return statistics1;
         }
+        
 
 
     }
